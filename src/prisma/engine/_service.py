@@ -296,9 +296,9 @@ class BaseServiceEngine:
         env['PORT'] = str(port)
         env['PRISMA_BRIDGE_PORT'] = str(port)
 
-        # Use npm start for production, npm run dev for development
-        use_dev = os.environ.get('NODE_ENV', 'development') == 'development'
-        cmd = ['npm', 'run', 'dev'] if use_dev else ['npm', 'start']
+        # Use npm start (compiled JS) instead of npm run dev (ts-node) for reliability
+        # npm start runs the pre-compiled JavaScript, avoiding ts-node dependency issues
+        cmd = ['npm', 'start']
 
         self._bridge_process = subprocess.Popen(
             cmd,

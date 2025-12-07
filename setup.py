@@ -58,6 +58,8 @@ setup(
             'bridge/*.yml',
             'bridge/*.md',
             'bridge/src/**/*.ts',
+            'bridge/dist/*.js',
+            'bridge/dist/**/*.js',
             'bridge/prisma/*.prisma',
             'bridge/Dockerfile',
             'bridge/tsconfig.json',

@@ -11,6 +11,7 @@ recursive-include src/prisma/ *.py.original
 
 # include the bridge service
 recursive-include src/prisma/bridge/ *.ts *.json *.js *.prisma *.yml *.md
+recursive-include src/prisma/bridge/dist/ *.js *.js.map
 include src/prisma/bridge/Dockerfile
 include src/prisma/bridge/tsconfig.json
 
