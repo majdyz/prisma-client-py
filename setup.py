@@ -49,7 +49,20 @@ setup(
     ),
     package_dir={'': 'src'},
     python_requires='>=3.8.0',
-    package_data={'': ['generator/templates/**/*.py.jinja', 'py.typed']},
+    package_data={
+        '': ['generator/templates/**/*.py.jinja', 'py.typed'],
+        'prisma': [
+            'bridge/*.json',
+            'bridge/*.js',
+            'bridge/*.ts',
+            'bridge/*.yml',
+            'bridge/*.md',
+            'bridge/src/**/*.ts',
+            'bridge/prisma/*.prisma',
+            'bridge/Dockerfile',
+            'bridge/tsconfig.json',
+        ],
+    },
     include_package_data=True,
     zip_safe=False,
     extras_require={

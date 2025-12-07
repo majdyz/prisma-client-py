@@ -1,4 +1,5 @@
 include README.md
+include MIGRATION.md
 include requirements/*.txt
 
 include src/prisma/py.typed
@@ -8,4 +9,11 @@ recursive-include src/prisma/generator/templates/ *.py.jinja
 # include the backups of templates that replace modules
 recursive-include src/prisma/ *.py.original
 
+# include the bridge service
+recursive-include src/prisma/bridge/ *.ts *.json *.js *.prisma *.yml *.md
+include src/prisma/bridge/Dockerfile
+include src/prisma/bridge/tsconfig.json
+
 global-exclude *.pyc
+global-exclude node_modules
+global-exclude __pycache__
