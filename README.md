@@ -70,7 +70,7 @@ graph LR
 ```mermaid
 graph LR
     subgraph "After (v0.13.0+)"
-        A2[Python Client] -->|HTTP| B2[TypeScript Bridge<br/>Express + @prisma/client]
+        A2[Python Client] -->|HTTP| B2[TypeScript Bridge]
         B2 --> C2[(Database)]
     end
 ```
@@ -92,7 +92,7 @@ flowchart TB
         EX --> TR
         EX --> TM
 
-        subgraph Prisma["@prisma/client"]
+        subgraph Prisma["Prisma Client"]
             PQ[PrismaClient]
         end
 
@@ -124,7 +124,7 @@ sequenceDiagram
     participant App as Python App
     participant SE as ServiceEngine
     participant Bridge as Bridge Service
-    participant Prisma as @prisma/client
+    participant Prisma as Prisma Client
     participant DB as Database
 
     App->>SE: await db.user.find_many()

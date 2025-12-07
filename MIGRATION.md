@@ -33,7 +33,7 @@ graph LR
 
     subgraph "After (v0.13.0+)"
         A2[Python Client] -->|HTTP| B2[TypeScript Bridge]
-        B2 --> D2[@prisma/client]
+        B2 --> D2[prisma/client]
         D2 --> C2[(Database)]
     end
 ```
