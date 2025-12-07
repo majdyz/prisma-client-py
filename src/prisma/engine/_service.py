@@ -54,11 +54,19 @@ class BaseServiceEngine:
         dml_path: Path,
         log_queries: bool = False,
         service_url: str | None = None,
-        auto_start_bridge: bool = False,
+        auto_start_bridge: bool | None = None,
     ) -> None:
         self.dml_path = dml_path
         self.service_url = service_url or os.environ.get('PRISMA_BRIDGE_URL', DEFAULT_SERVICE_URL)
-        self._auto_start_bridge = auto_start_bridge or os.environ.get('PRISMA_BRIDGE_AUTO_START', '').lower() in ('true', '1', 'yes')
+
+        # Auto-start is enabled by default for seamless experience (like old binary engine)
+        # Can be disabled with PRISMA_BRIDGE_AUTO_START=false for manual/Docker setups
+        if auto_start_bridge is not None:
+            self._auto_start_bridge = auto_start_bridge
+        else:
+            env_value = os.environ.get('PRISMA_BRIDGE_AUTO_START', 'true').lower()
+            self._auto_start_bridge = env_value not in ('false', '0', 'no')
+
         self._log_queries = log_queries
         self._bridge_process = None
 

@@ -170,10 +170,9 @@ npm install
 # 3. Configure your database
 cp .env.example .env
 # Edit .env with your DATABASE_URL
-
-# 4. Start the bridge service
-npm run dev
 ```
+
+That's it! The bridge service **auto-starts** when you call `prisma.connect()` - just like the old binary engine.
 
 ### Basic Usage
 
@@ -252,11 +251,19 @@ This fork introduces significant architectural changes. See [MIGRATION.md](./MIG
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PRISMA_BRIDGE_URL` | `http://localhost:4466` | Bridge service URL |
+| `PRISMA_BRIDGE_AUTO_START` | `true` | Auto-start bridge on connect (set `false` for Docker/manual) |
 | `PRISMA_CONNECTION_LIMIT` | `10` | Database connection pool size |
 | `PRISMA_POOL_TIMEOUT` | `10` | Pool timeout in seconds |
 | `DATABASE_URL` | - | Your database connection string |
 
 ## Production Deployment
+
+For production, you may want to run the bridge service separately (Docker, Kubernetes, etc.). Disable auto-start:
+
+```sh
+export PRISMA_BRIDGE_AUTO_START=false
+export PRISMA_BRIDGE_URL=http://your-bridge-host:4466
+```
 
 ### Docker Compose
 
