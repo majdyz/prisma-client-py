@@ -47,14 +47,8 @@ export const generalRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => !RATE_LIMIT_ENABLED || skip(req),
-  keyGenerator: (req) => {
-    // Use X-Forwarded-For if behind proxy, otherwise use IP
-    // Handle both IPv4 and IPv6 addresses properly
-    const forwarded = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim();
-    const clientIp = forwarded || req.ip || req.socket?.remoteAddress || 'unknown';
-    // Normalize IPv6 addresses for consistency
-    return clientIp === '::1' ? 'localhost' : clientIp;
-  },
+  // Use default IP key generator to properly handle IPv6
+  // This resolves the ERR_ERL_KEY_GEN_IPV6 warning
 });
 
 /**
@@ -68,14 +62,8 @@ export const transactionRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skip: () => !RATE_LIMIT_ENABLED,
-  keyGenerator: (req) => {
-    // Use X-Forwarded-For if behind proxy, otherwise use IP  
-    // Handle both IPv4 and IPv6 addresses properly
-    const forwarded = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim();
-    const clientIp = forwarded || req.ip || req.socket?.remoteAddress || 'unknown';
-    // Normalize IPv6 addresses for consistency
-    return clientIp === '::1' ? 'localhost' : clientIp;
-  },
+  // Use default IP key generator to properly handle IPv6
+  // This resolves the ERR_ERL_KEY_GEN_IPV6 warning
 });
 
 /**

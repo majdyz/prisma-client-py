@@ -64,7 +64,7 @@ queryRouter.post('/', async (req, res) => {
     const txId = req.headers['x-transaction-id'] as string | undefined;
 
     // Parse the GraphQL query to extract operation details
-    const parsed = parseGraphQLQuery(query);
+    const parsed = parseGraphQLQuery(query, variables);
 
     if (!parsed) {
       return res.status(400).json({

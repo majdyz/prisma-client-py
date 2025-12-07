@@ -410,6 +410,110 @@ describe('GraphQL Parser', () => {
       });
     });
 
+    describe('variables and substitution', () => {
+      it('should parse query with variable substitution for OR conditions', () => {
+        const query = `query {
+          result: findManyAgentBlock(where: $where) {
+            id
+            name
+          }
+        }`;
+
+        const variables = {
+          where: {
+            OR: [
+              { id: "test" },
+              { name: "test" }
+            ]
+          }
+        };
+
+        const result = parseGraphQLQuery(query, variables);
+
+        expect(result).not.toBeNull();
+        expect(result!.operation).toBe('query');
+        expect(result!.action).toBe('findMany');
+        expect(result!.model).toBe('AgentBlock');
+        expect(result!.args.where).toEqual({
+          OR: [
+            { id: "test" },
+            { name: "test" }
+          ]
+        });
+      });
+
+      it('should parse query with multiple variables', () => {
+        const query = `query {
+          result: findManyUser(where: $where, take: $limit, skip: $offset) {
+            id
+            name
+          }
+        }`;
+
+        const variables = {
+          where: { name: { contains: "test" } },
+          limit: 10,
+          offset: 0
+        };
+
+        const result = parseGraphQLQuery(query, variables);
+
+        expect(result).not.toBeNull();
+        expect(result!.args.where).toEqual({ name: { contains: "test" } });
+        expect(result!.args.take).toBe(10);
+        expect(result!.args.skip).toBe(0);
+      });
+
+      it('should handle complex nested variable substitution', () => {
+        const query = `query {
+          result: findManyPost(where: $filter, orderBy: $sort) {
+            id
+            title
+            author { name }
+          }
+        }`;
+
+        const variables = {
+          filter: {
+            AND: [
+              { published: true },
+              { 
+                OR: [
+                  { title: { contains: "test" } },
+                  { content: { contains: "test" } }
+                ]
+              }
+            ]
+          },
+          sort: { createdAt: "desc" }
+        };
+
+        const result = parseGraphQLQuery(query, variables);
+
+        expect(result).not.toBeNull();
+        expect(result!.args.where).toEqual(variables.filter);
+        expect(result!.args.orderBy).toEqual(variables.sort);
+      });
+
+      it('should handle mixed inline args and variables', () => {
+        const query = `query {
+          result: findManyUser(where: $where, take: 20) {
+            id
+          }
+        }`;
+
+        const variables = {
+          where: { active: true }
+        };
+
+        const result = parseGraphQLQuery(query, variables);
+
+        expect(result).not.toBeNull();
+        expect(result!.args.where).toEqual({ active: true });
+        expect(result!.args.take).toBe(20);
+      });
+    });
+
     describe('edge cases', () => {
       it('should handle empty selections', () => {
         const query = `mutation {

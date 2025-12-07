@@ -60,7 +60,7 @@ const ACTION_PATTERNS: Record<string, { action: string; extractModel: boolean }>
   executeRaw: { action: 'executeRaw', extractModel: false },
 };
 
-export function parseGraphQLQuery(query: string): ParsedQuery | null {
+export function parseGraphQLQuery(query: string, variables?: Record<string, any>): ParsedQuery | null {
   try {
     // Clean up the query string
     const cleanQuery = query.trim();
@@ -92,8 +92,8 @@ export function parseGraphQLQuery(query: string): ParsedQuery | null {
       return null;
     }
 
-    // Parse the arguments
-    const args = parseArguments(argsString);
+    // Parse the arguments, substituting variables if provided
+    const args = parseArguments(argsString, variables);
 
     // Parse the selections
     const selections = parseSelections(selectionsString);
@@ -158,7 +158,7 @@ function parseMethodName(methodName: string): { action: string; model: string } 
   return { action: methodName, model: '' };
 }
 
-function parseArguments(argsString: string): Record<string, any> {
+function parseArguments(argsString: string, variables?: Record<string, any>): Record<string, any> {
   if (!argsString || argsString === '()') {
     return {};
   }
@@ -169,9 +169,42 @@ function parseArguments(argsString: string): Record<string, any> {
     return {};
   }
 
+  // Check if the arguments contain variable references like $where, $data, etc.
+  if (variables && inner.includes('$')) {
+    // Parse arguments that use variables
+    return parseGraphQLObjectWithVariables(inner, variables);
+  }
+
   // This is a simplified parser - handles the GraphQL-like syntax
   // that prisma-client-py generates
   return parseGraphQLObject(inner);
+}
+
+function parseGraphQLObjectWithVariables(str: string, variables: Record<string, any>): Record<string, any> {
+  const result: Record<string, any> = {};
+  
+  // Simple parser for arguments with variables
+  // Example: where: $where, data: $data
+  const pairs = str.split(',').map(s => s.trim());
+  
+  for (const pair of pairs) {
+    const colonIndex = pair.indexOf(':');
+    if (colonIndex === -1) continue;
+    
+    const key = pair.substring(0, colonIndex).trim();
+    const value = pair.substring(colonIndex + 1).trim();
+    
+    if (value.startsWith('$')) {
+      // It's a variable reference
+      const varName = value.substring(1);
+      result[key] = variables[varName];
+    } else {
+      // Parse as regular value
+      result[key] = parseValue(value).value;
+    }
+  }
+  
+  return result;
 }
 
 function parseGraphQLObject(str: string): Record<string, any> {
