@@ -1,0 +1,172 @@
+name: Bridge Service Tests
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "prisma-bridge/**"
+      - "src/prisma/engine/_service.py"
+      - ".github/workflows/bridge-test.yml"
+  pull_request:
+    paths:
+      - "prisma-bridge/**"
+      - "src/prisma/engine/_service.py"
+      - ".github/workflows/bridge-test.yml"
+
+jobs:
+  bridge-unit-tests:
+    name: Bridge Unit Tests (Node.js ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ["18", "20", "22"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+          cache-dependency-path: prisma-bridge/package-lock.json
+
+      - name: Install bridge dependencies
+        working-directory: prisma-bridge
+        run: npm ci
+
+      - name: Generate Prisma Client
+        working-directory: prisma-bridge
+        run: npx prisma generate
+
+      - name: Run TypeScript tests
+        working-directory: prisma-bridge
+        run: npm test
+
+  bridge-integration-tests:
+    name: Bridge Integration Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: prisma
+          POSTGRES_DB: prisma
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: prisma-bridge/package-lock.json
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install httpx aiohttp pytest
+
+      - name: Install bridge dependencies
+        working-directory: prisma-bridge
+        run: npm ci
+
+      - name: Generate Prisma Client and push schema
+        working-directory: prisma-bridge
+        env:
+          DATABASE_URL: postgresql://postgres:prisma@localhost:5432/prisma
+        run: |
+          npx prisma generate
+          npx prisma db push --skip-generate
+
+      - name: Start bridge service
+        working-directory: prisma-bridge
+        env:
+          DATABASE_URL: postgresql://postgres:prisma@localhost:5432/prisma
+        run: |
+          npm run dev &
+          sleep 5
+          curl -f http://localhost:4466/health || exit 1
+
+      - name: Run Python integration tests
+        env:
+          PRISMA_BRIDGE_URL: http://localhost:4466
+        run: |
+          python test_all_operations.py
+          python test_batch.py
+          python test_relations.py
+          python test_service_integration.py
+
+  bridge-lint:
+    name: Bridge Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: prisma-bridge/package-lock.json
+
+      - name: Install dependencies
+        working-directory: prisma-bridge
+        run: npm ci
+
+      - name: Type check
+        working-directory: prisma-bridge
+        run: npx tsc --noEmit
+
+  bridge-build:
+    name: Bridge Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: prisma-bridge/package-lock.json
+
+      - name: Install dependencies
+        working-directory: prisma-bridge
+        run: npm ci
+
+      - name: Generate Prisma Client
+        working-directory: prisma-bridge
+        run: npx prisma generate
+
+      - name: Build
+        working-directory: prisma-bridge
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bridge-dist
+          path: prisma-bridge/dist/

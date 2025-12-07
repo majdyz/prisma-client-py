@@ -219,9 +219,8 @@ class Generator(GenericGenerator[PythonData]):
         return Manifest(
             name=f'Prisma Client Python (v{__version__})',
             default_output=BASE_PACKAGE_DIR,
-            requires_engines=[
-                'queryEngine',
-            ],
+            # No longer requires Rust binary engines - uses TypeScript bridge service
+            requires_engines=[],
         )
 
     @override

@@ -1,6 +1,12 @@
-from ._query import (
-    SyncQueryEngine as SyncQueryEngine,
-    AsyncQueryEngine as AsyncQueryEngine,
+# Prisma Client Python - Engine Layer
+#
+# This module provides the engine implementations for communicating with Prisma.
+# As of version 0.13.0, the ServiceEngine (TypeScript Bridge) is the only supported engine.
+# The old binary QueryEngine has been deprecated and removed.
+
+from ._service import (
+    SyncServiceEngine as SyncServiceEngine,
+    AsyncServiceEngine as AsyncServiceEngine,
 )
 from .errors import *
 from .._types import TransactionId as TransactionId
@@ -9,6 +15,10 @@ from ._abstract import (
     SyncAbstractEngine as SyncAbstractEngine,
     AsyncAbstractEngine as AsyncAbstractEngine,
 )
+
+# Backwards compatibility aliases - these now point to ServiceEngine
+SyncQueryEngine = SyncServiceEngine
+AsyncQueryEngine = AsyncServiceEngine
 
 try:
     from .query import *  # noqa: TID251

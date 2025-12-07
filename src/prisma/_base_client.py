@@ -12,8 +12,8 @@ from pydantic import BaseModel
 
 from ._types import Datasource, HttpConfig, PrismaMethod, MetricsFormat, TransactionId, DatasourceOverride
 from .engine import (
-    SyncQueryEngine,
-    AsyncQueryEngine,
+    SyncServiceEngine,
+    AsyncServiceEngine,
     BaseAbstractEngine,
     SyncAbstractEngine,
     AsyncAbstractEngine,
@@ -393,21 +393,26 @@ class SyncBasePrisma(BasePrisma[SyncAbstractEngine]):
         return model_parse(Metrics, response)
 
     def _create_engine(self, dml_path: Path | None = None) -> SyncAbstractEngine:
-        if self._engine_type == EngineType.binary:
-            return SyncQueryEngine(
-                dml_path=dml_path or self._packaged_schema_path,
-                log_queries=self._log_queries,
-                http_config=self._http_config,
+        # All engine types now use ServiceEngine (TypeScript bridge)
+        # The binary engine has been deprecated as of Prisma 6+
+        if self._engine_type != EngineType.service:
+            warnings.warn(
+                f"Engine type '{self._engine_type}' is deprecated. "
+                "Using ServiceEngine (TypeScript bridge) instead. "
+                "Please update your configuration to use engine_type='service'.",
+                DeprecationWarning,
+                stacklevel=2,
             )
-
-        raise NotImplementedError(f'Unsupported engine type: {self._engine_type}')
+        return SyncServiceEngine(
+            dml_path=dml_path or self._packaged_schema_path,
+            log_queries=self._log_queries,
+            http_config=self._http_config,
+        )
 
     @property
     def _engine_class(self) -> type[SyncAbstractEngine]:
-        if self._engine_type == EngineType.binary:
-            return SyncQueryEngine
-
-        raise RuntimeError(f'Unhandled engine type: {self._engine_type}')
+        # All engine types now use ServiceEngine
+        return SyncServiceEngine
 
     # TODO: don't return Any
     def _execute(
@@ -512,21 +517,26 @@ class AsyncBasePrisma(BasePrisma[AsyncAbstractEngine]):
         return model_parse(Metrics, response)
 
     def _create_engine(self, dml_path: Path | None = None) -> AsyncAbstractEngine:
-        if self._engine_type == EngineType.binary:
-            return AsyncQueryEngine(
-                dml_path=dml_path or self._packaged_schema_path,
-                log_queries=self._log_queries,
-                http_config=self._http_config,
+        # All engine types now use ServiceEngine (TypeScript bridge)
+        # The binary engine has been deprecated as of Prisma 6+
+        if self._engine_type != EngineType.service:
+            warnings.warn(
+                f"Engine type '{self._engine_type}' is deprecated. "
+                "Using ServiceEngine (TypeScript bridge) instead. "
+                "Please update your configuration to use engine_type='service'.",
+                DeprecationWarning,
+                stacklevel=2,
             )
-
-        raise NotImplementedError(f'Unsupported engine type: {self._engine_type}')
+        return AsyncServiceEngine(
+            dml_path=dml_path or self._packaged_schema_path,
+            log_queries=self._log_queries,
+            http_config=self._http_config,
+        )
 
     @property
     def _engine_class(self) -> type[AsyncAbstractEngine]:
-        if self._engine_type == EngineType.binary:
-            return AsyncQueryEngine
-
-        raise RuntimeError(f'Unhandled engine type: {self._engine_type}')
+        # All engine types now use ServiceEngine
+        return AsyncServiceEngine
 
     # TODO: don't return Any
     async def _execute(

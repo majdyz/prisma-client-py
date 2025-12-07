@@ -242,9 +242,14 @@ class InterfaceChoices(str, enum.Enum):
 
 
 class EngineType(str, enum.Enum):
-    binary = 'binary'
-    library = 'library'
-    dataproxy = 'dataproxy'
+    # Service engine is the only supported engine type as of v0.13.0
+    # The binary engine has been deprecated due to Prisma moving from Rust to TypeScript
+    service = 'service'  # TypeScript bridge service for Prisma 6+
+
+    # Deprecated engine types (kept for backwards compatibility, will use service)
+    binary = 'binary'    # DEPRECATED: Maps to service
+    library = 'library'  # DEPRECATED: Maps to service
+    dataproxy = 'dataproxy'  # DEPRECATED: Maps to service
 
     @override
     def __str__(self) -> str:
