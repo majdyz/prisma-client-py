@@ -31,10 +31,6 @@ export async function executeQuery(prisma: PrismaClientAny, query: ParsedQuery):
   // Build the Prisma query arguments
   const prismaArgs = buildPrismaArgs(query);
 
-  console.log(`Executing: prisma.${modelName}.${action}(${JSON.stringify(prismaArgs)})`);
-  
-  // Debug: Log the actual query being received
-  console.log('Raw query args received:', JSON.stringify(args, null, 2));
 
   // Execute the appropriate action
   switch (action) {

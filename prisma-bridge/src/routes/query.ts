@@ -53,7 +53,6 @@ queryRouter.post('/', async (req, res) => {
     }
 
     if (!query) {
-      console.log('Request body:', JSON.stringify(req.body));
       return res.status(400).json({
         data: null,
         errors: [{ code: 'BAD_REQUEST', message: 'Missing query field' }],
@@ -73,7 +72,6 @@ queryRouter.post('/', async (req, res) => {
       });
     }
 
-    console.log('Parsed query:', JSON.stringify(parsed, null, 2));
 
     // Get the appropriate client (transaction or main)
     const client = txId ? txManager.getClient(txId) : prisma;
