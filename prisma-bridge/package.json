@@ -25,6 +25,7 @@
   "author": "Robert Craigie",
   "license": "Apache-2.0",
   "scripts": {
+    "prestart": "node scripts/copy-schema.js && npx prisma generate",
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",

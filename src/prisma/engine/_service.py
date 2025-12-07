@@ -295,6 +295,21 @@ class BaseServiceEngine:
         env = os.environ.copy()
         env['PORT'] = str(port)
         env['PRISMA_BRIDGE_PORT'] = str(port)
+        
+        # Pass the schema path so the bridge can use the project's schema
+        # Look for schema.prisma in common locations relative to the dml_path
+        schema_candidates = [
+            self.dml_path,  # Directly provided path
+            self.dml_path.parent / 'schema.prisma' if self.dml_path.is_file() else None,
+            Path.cwd() / 'schema.prisma',
+            Path.cwd() / 'prisma' / 'schema.prisma',
+        ]
+        
+        for candidate in schema_candidates:
+            if candidate and candidate.exists():
+                env['PRISMA_SCHEMA_PATH'] = str(candidate)
+                log.debug('Found project schema at %s', candidate)
+                break
 
         # Use npm start (compiled JS) instead of npm run dev (ts-node) for reliability
         # npm start runs the pre-compiled JavaScript, avoiding ts-node dependency issues
